@@ -15,9 +15,9 @@ Google Translate.
 
 ## Demo
 
-![preview](preview.png)
+![demo](assets/demo.gif)
 
-<video src="assets/demo.mp4" controls loop muted width="640"></video>
+![preview](preview.png)
 
 ## Requirements
 
