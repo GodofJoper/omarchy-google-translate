@@ -13,6 +13,12 @@ Google Translate.
 - Both panes support text selection: copy the whole translation with `Enter`,
   or select a part and copy it with `Ctrl+C` (the output pane is read-only)
 
+## Demo
+
+![preview](preview.png)
+
+<video src="assets/demo.mp4" controls loop muted width="640"></video>
+
 ## Requirements
 
 - Omarchy with the Quattro shell
