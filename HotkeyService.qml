@@ -127,9 +127,9 @@ Scope {
     save()
     var body
     if (r.target)
-      body = "Opens with " + HK.pretty(r.target) + ". " + HK.pretty(r.preferred) + " was already used" + (r.preferredOwner ? " for \u201C" + r.preferredOwner + "\u201D" : "") + ". Change it with: omarchy-shell shell call " + pluginId + " setHotkey SUPER + T"
+      body = "Opens with " + HK.pretty(r.target) + ". " + HK.pretty(r.preferred) + " was already used" + (r.preferredOwner ? " for \u201C" + r.preferredOwner + "\u201D" : "") + ". Change it with: omarchy-shell shell call " + pluginId + " setHotkey SUPER + SHIFT + G"
     else
-      body = HK.pretty(r.preferred) + " and every fallback key are taken. Change it with: omarchy-shell shell call " + pluginId + " setHotkey SUPER + T"
+      body = HK.pretty(r.preferred) + " and every fallback key are taken. Change it with: omarchy-shell shell call " + pluginId + " setHotkey SUPER + SHIFT + G"
     Quickshell.execDetached([omarchyPath + "/bin/omarchy-notification-send", "Google Translate", body])
   }
 

@@ -98,7 +98,7 @@ Item {
     else root.open("{}")
   }
 
-  // IPC: omarchy-shell shell call godofjoper.translate setHotkey 'SUPER + T'
+  // IPC: omarchy-shell shell call godofjoper.translate setHotkey 'SUPER + SHIFT + G'
   function setHotkey(combo) {
     var err = hotkeyService.setHotkey(String(combo || ""))
     return err ? "error: " + err : "ok"

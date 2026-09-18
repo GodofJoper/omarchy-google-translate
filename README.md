@@ -50,9 +50,8 @@ Control it from the command line:
 | `omarchy-shell shell toggle godofjoper.translate` | Open the overlay directly, bypassing the hotkey |
 
 If your preferred key is already taken, the plugin tries a fallback
-(`SUPER + T`, `SUPER + CTRL + ALT + T`, `SUPER + SHIFT + T`, `SUPER + ALT + G`)
-and notifies you once. Preferences live in
-`~/.config/omarchy/google-translate.settings.json`.
+(`SUPER + SHIFT + T`, `SUPER + ALT + G`) and notifies you once. Preferences live
+in `~/.config/omarchy/google-translate.settings.json`.
 
 The `capture.sh` script captures the current selection *before* the overlay
 takes keyboard focus (the focus steal makes the source app release the primary

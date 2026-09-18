@@ -14,11 +14,10 @@ var OWNER = "Google Translate"
 var DEFAULT_HOTKEY = "SUPER + ALT + T"
 
 // Tried in order when the preferred key is taken. SUPER + ALT + T stays first
-// so a clean Omarchy install lands there.
+// so a clean Omarchy install lands there. The others were checked against
+// Omarchy's default bindings so nothing here is owned by Omarchy itself.
 var CANDIDATES = [
   "SUPER + ALT + T",
-  "SUPER + T",
-  "SUPER + CTRL + ALT + T",
   "SUPER + SHIFT + T",
   "SUPER + ALT + G"
 ]
