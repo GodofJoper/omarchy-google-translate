@@ -6,6 +6,8 @@ Google Translate.
 ## Features
 
 - Select any text and press the hotkey — the selection is translated instantly
+- Works out of the box: the plugin registers its own hotkey on first run, so no
+  hand-edited keybindings are needed
 - Falls back to the clipboard, or just type into the source pane
 - Auto-detect language, source/target language switching and swap
 - Both panes support text selection: copy the whole translation with `Enter`,
@@ -24,16 +26,33 @@ Google Translate.
 omarchy plugin add https://github.com/GodofJoper/omarchy-google-translate.git --enable
 ```
 
-## Configure
+## Hotkey
 
-The overlay is summoned with a hotkey, but a plugin never touches your
-keybindings — add one line to `~/.config/hypr/bindings.lua`:
+On first run the plugin registers the **SUPER + ALT + T** binding in
+`~/.config/hypr/bindings.lua` and reloads Hyprland, so it works with no manual
+configuration. The binding is kept in sync: Hyprland config reloads re-apply it,
+and the plugin stores one timestamped backup (`bindings.lua.bak.google-translate.<ts>`)
+next to the config each time the binding changes. Only the line whose description
+is `Google Translate` is ever touched.
 
-```lua
-o.bind("SUPER + ALT + T", "Translate", "~/.config/omarchy/plugins/godofjoper.translate/capture.sh")
-```
+> Note: Hyprland in Lua mode has no working runtime-only binding path (`hyprctl
+> eval` binds never dispatch), which is why the plugin regenerates the config
+> line instead.
 
-Then reload Hyprland with `hyprctl reload`.
+Control it from the command line:
+
+| Command | Effect |
+| --- | --- |
+| `omarchy-shell shell call godofjoper.translate hotkeyStatus ''` | Show the active hotkey |
+| `omarchy-shell shell call godofjoper.translate setHotkey 'SUPER + SHIFT + T'` | Change the hotkey (existing combos are refused with an error) |
+| `omarchy-shell shell call godofjoper.translate setHotkeyEnabled false` | Unbind the hotkey |
+| `omarchy-shell shell call godofjoper.translate setHotkeyEnabled true` | Restore it |
+| `omarchy-shell shell toggle godofjoper.translate` | Open the overlay directly, bypassing the hotkey |
+
+If your preferred key is already taken, the plugin tries a fallback
+(`SUPER + T`, `SUPER + CTRL + ALT + T`, `SUPER + SHIFT + T`, `SUPER + ALT + G`)
+and notifies you once. Preferences live in
+`~/.config/omarchy/google-translate.settings.json`.
 
 The `capture.sh` script captures the current selection *before* the overlay
 takes keyboard focus (the focus steal makes the source app release the primary
@@ -63,9 +82,13 @@ field is ready for manual typing.
 omarchy plugin remove godofjoper.translate
 ```
 
-Then remove the keybinding line from `bindings.lua`. The state file
-`~/.local/state/omarchy/translate-selection.txt` (the last captured text) is left
-behind and can be deleted.
+Disabling the plugin while it is running (`setHotkeyEnabled false`) unbinds the
+hotkey immediately. Removing the plugin while the shell is running also strips
+the `Google Translate` line from `bindings.lua` during shutdown; if you remove it
+while the shell is stopped, delete that line manually and run `hyprctl reload`.
+
+The state file `~/.local/state/omarchy/translate-selection.txt` (the last
+captured text) is left behind and can be deleted.
 
 ## Privacy
 

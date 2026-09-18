@@ -4,6 +4,7 @@ import Quickshell.Wayland
 import QtQuick
 import qs.Commons
 import qs.Ui
+import "." as Local
 
 Item {
   id: root
@@ -64,6 +65,12 @@ Item {
   property int cardWidth: Math.min(Style.space(700), panel.width - Style.gapsOut * 2)
   property int cardHeight: Math.min(Style.space(500), panel.height - Style.gapsOut * 2)
 
+  // Self-registers the default hotkey (SUPER + ALT + T) while the plugin is
+  // loaded and unbinds it when the plugin is disabled or removed.
+  Local.HotkeyService {
+    id: hotkeyService
+  }
+
   function open(payloadJson) {
     root.opened = true
     root.inputText = ""
@@ -90,6 +97,21 @@ Item {
     if (root.opened) dismiss()
     else root.open("{}")
   }
+
+  // IPC: omarchy-shell shell call godofjoper.translate setHotkey 'SUPER + T'
+  function setHotkey(combo) {
+    var err = hotkeyService.setHotkey(String(combo || ""))
+    return err ? "error: " + err : "ok"
+  }
+
+  // IPC: omarchy-shell shell call godofjoper.translate setHotkeyEnabled false
+  function setHotkeyEnabled(value) {
+    hotkeyService.setEnabled(String(value) !== "false")
+    return "ok"
+  }
+
+  // IPC: omarchy-shell shell call godofjoper.translate hotkeyStatus ''
+  function hotkeyStatus() { return hotkeyService.summary }
 
   function cycleSourceLang(delta) {
     root.sourceLangIndex = (root.sourceLangIndex + delta + root.commonLangs.length) % root.commonLangs.length
@@ -654,7 +676,7 @@ Item {
 
           Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: "Tab: swap  Alt+↑↓: source  PgUp/PgDn: target  Enter: copy all  Ctrl+C: copy sel  Esc: close"
+            text: "Open: " + (hotkeyService.prettyActive || "-") + "   Tab: swap  Alt+↑↓: source  PgUp/PgDn: target  Enter: copy all  Ctrl+C: copy sel  Esc: close"
             color: Util.alpha(root.foreground, 0.35)
             font.family: root.fontFamily
             font.pixelSize: Style.font.caption
