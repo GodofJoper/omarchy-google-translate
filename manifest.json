@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "godofjoper.translate",
+  "name": "Google Translate",
+  "version": "1.1.0",
+  "author": "Ross",
+  "license": "MIT",
+  "description": "Google Translate overlay — select any text and translate it with a hotkey",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "Translator.qml"
+  }
+}
