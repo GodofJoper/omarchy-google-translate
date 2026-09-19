@@ -64,6 +64,14 @@ takes keyboard focus (the focus steal makes the source app release the primary
 selection), then toggles the overlay. Priority: highlighted text → clipboard →
 empty.
 
+Captured text is capped at 1 MiB and stored in a private directory/file
+(`0700`/`0600`, atomically renamed, never following symlinks) at
+`~/.local/state/omarchy/translate-selection.txt`. The text travels to the
+translator over stdin and its HTTP request body only — it is never passed as a
+process argument or placed in a URL. Input, request response, and rendered
+output are all byte-limited; oversized selections or responses are rejected
+instead of buffered.
+
 ## Usage
 
 Select text anywhere and press the hotkey. The overlay opens with the text

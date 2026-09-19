@@ -23,6 +23,9 @@ Item {
   property string errorMessage: ""
   property bool copyFlash: false
 
+  readonly property int maxSelectionChars: 1048576
+  readonly property int maxOutputChars: 1048576
+
   readonly property var commonLangs: [
     { code: "auto", name: "Auto" },
     { code: "en",    name: "English" },
@@ -202,13 +205,29 @@ Item {
     interval: 400
     repeat: false
     onTriggered: {
+      if (!root.inputText || !root.inputText.trim()) {
+        root.translating = false
+        root.translatedText = ""
+        root.errorMessage = ""
+        return
+      }
+      if (root.inputText.length > root.maxSelectionChars) {
+        root.translating = false
+        root.translatedText = ""
+        root.errorMessage = "Text too long"
+        return
+      }
       root.translating = true
       root.errorMessage = ""
+      translateProc.lastOutput = ""
+      translateProc.lastError = ""
+      translateProc.outputTooLarge = false
+      translateProc.stdinEnabled = true
+      translateProc.pendingInput = root.inputText
       translateProc.command = [
         root.pluginPath + "/translate.py", "translate",
         "--from", root.sourceLang,
-        "--to", root.targetLang,
-        "--text", root.inputText
+        "--to", root.targetLang
       ]
       translateProc.running = true
     }
@@ -229,7 +248,13 @@ Item {
     printErrors: false
     onLoaded: {
       if (root.opened) {
-        root.inputText = text().trim()
+        var text = text() || ""
+        if (text.length <= root.maxSelectionChars) {
+          root.inputText = text.trim()
+        } else {
+          root.inputText = ""
+          root.errorMessage = "Selection too large"
+        }
       }
     }
     onLoadFailed: {}
@@ -238,27 +263,50 @@ Item {
   Process {
     id: translateProc
     property string lastOutput: ""
+    property string lastError: ""
+    property string pendingInput: ""
+    property bool outputTooLarge: false
+    property int maxOutputChars: 1048576
+    stdinEnabled: false
     stdout: SplitParser {
-      onRead: function(data) { translateProc.lastOutput += data }
+      onRead: function(data) {
+        if (!translateProc.outputTooLarge && translateProc.lastOutput.length < translateProc.maxOutputChars)
+          translateProc.lastOutput += data
+        else
+          translateProc.outputTooLarge = true
+      }
     }
+    stderr: SplitParser {
+      onRead: function(data) {
+        if (translateProc.lastError.length < 4096) translateProc.lastError += data
+      }
+    }
+    onStarted: translateProc.write(translateProc.pendingInput)
     onRunningChanged: {
       if (!running) {
         root.translating = false
         try {
-          var result = JSON.parse(lastOutput)
-          if (result.error) {
-            root.errorMessage = result.error
+          if (translateProc.outputTooLarge) {
+            root.errorMessage = "Output too large"
             root.translatedText = ""
           } else {
-            root.translatedText = result.translated || ""
-            root.detectedLang = result.from_lang || ""
-            root.errorMessage = ""
+            var result = JSON.parse(lastOutput)
+            if (result.error) {
+              root.errorMessage = result.error
+              root.translatedText = ""
+            } else {
+              root.translatedText = result.translated || ""
+              root.detectedLang = result.from_lang || ""
+              root.errorMessage = ""
+            }
           }
         } catch (e) {
-          root.errorMessage = "Parse error"
+          root.errorMessage = translateProc.lastError.trim() || "Parse error"
           root.translatedText = ""
         }
         lastOutput = ""
+        lastError = ""
+        outputTooLarge = false
       }
     }
   }
