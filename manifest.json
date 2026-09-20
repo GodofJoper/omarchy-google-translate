@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "godofjoper.translate",
   "name": "Google Translate",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "author": "Ross",
   "license": "MIT",
   "description": "Google Translate overlay — select any text and translate it with a hotkey",

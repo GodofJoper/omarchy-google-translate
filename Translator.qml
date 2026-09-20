@@ -82,7 +82,16 @@ Item {
     root.copyFlash = false
     root.languageMenuOpen = false
     Qt.callLater(function() { inputEdit.forceActiveFocus() })
-    selectionFile.reload()
+    var statePath = Quickshell.env("HOME") + "/.local/state/omarchy/translate-selection.txt"
+    selectionFile.path = ""
+    selectionFile.path = statePath
+    selectionFile.waitForJob()
+    var fresh = (selectionFile.text() || "").trim()
+    if (fresh.length > root.maxSelectionChars) {
+      root.errorMessage = "Selection too large"
+    } else if (fresh.length > 0) {
+      root.inputText = fresh
+    }
   }
 
   function close() {
