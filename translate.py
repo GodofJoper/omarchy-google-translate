@@ -9,6 +9,7 @@ strictly capped.
 
 Commands:
     echo "hello" | translate.py translate --from auto --to ru
+    translate.py read --path $HOME/.local/state/omarchy/translate-selection.txt
     translate.py languages
 """
 
@@ -16,6 +17,7 @@ import argparse
 import json
 import os
 import select
+import stat
 import sys
 import time
 import urllib.error
@@ -26,6 +28,8 @@ HTTP_ERROR_CODES_FOR_RETRY = (429, 403, 500, 502, 503, 504)
 
 MAX_INPUT_BYTES = 1048576
 MAX_RESPONSE_BYTES = 8 * 1024 * 1024
+MAX_SELECTION_BYTES = 1048576
+SELECTION_READ_CHUNK = 4096
 STDIN_IDLE_TIMEOUT = 0.8
 STDIN_TOTAL_TIMEOUT = 15.0
 
@@ -77,6 +81,35 @@ ALL_LANGUAGES = [
     ("uz", "Uzbek"), ("vi", "Vietnamese"), ("cy", "Welsh"), ("xh", "Xhosa"),
     ("yi", "Yiddish"), ("yo", "Yoruba"), ("zu", "Zulu"),
 ]
+
+
+def read_selection_file(path):
+    """Print at most MAX_SELECTION_BYTES of a private selection file.
+
+    The path is opened once with O_NOFOLLOW|O_NONBLOCK and the resulting
+    descriptor is validated before use: it must be a regular file owned by the
+    current uid. FIFOs, symlinks, device nodes, and foreign-owned files are
+    silently rejected, so the shell can never block on or read unbounded data.
+    Nothing is printed when the path is rejected.
+    """
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    except OSError:
+        return
+    try:
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode) or st.st_uid != os.geteuid():
+            return
+        out = bytearray()
+        while len(out) < MAX_SELECTION_BYTES:
+            room = MAX_SELECTION_BYTES - len(out)
+            chunk = os.read(fd, min(SELECTION_READ_CHUNK, room))
+            if not chunk:
+                break
+            out += chunk
+    finally:
+        os.close(fd)
+    sys.stdout.buffer.write(bytes(out))
 
 
 def read_stdin_capped(max_bytes):
@@ -185,6 +218,9 @@ def main():
     tr.add_argument("--from", dest="from_lang", default="auto")
     tr.add_argument("--to", dest="to_lang", default="en")
 
+    rd = sub.add_parser("read")
+    rd.add_argument("--path", required=True)
+
     sub.add_parser("languages")
 
     args = parser.parse_args()
@@ -196,6 +232,8 @@ def main():
         else:
             result = translate_text(raw.decode("utf-8", errors="replace"), args.from_lang, args.to_lang)
         print(json.dumps(result))
+    elif args.command == "read":
+        read_selection_file(args.path)
     elif args.command == "languages":
         list_languages()
     else:

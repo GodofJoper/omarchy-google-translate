@@ -12,6 +12,11 @@ Item {
   property string pluginBase: (Quickshell.env("HOME") || "/tmp") + "/.config/omarchy/plugins"
   property string pluginId: root.manifest && root.manifest.id ? root.manifest.id : "godofjoper.translate"
   property string pluginPath: pluginBase + "/" + pluginId
+  property string stateDir: {
+    var x = Quickshell.env("XDG_STATE_HOME")
+    if (x && x.length > 0) return x
+    return (Quickshell.env("HOME") || "/tmp") + "/.local/state"
+  }
   property var shell: null
   property var manifest: null
 
@@ -82,16 +87,11 @@ Item {
     root.copyFlash = false
     root.languageMenuOpen = false
     Qt.callLater(function() { inputEdit.forceActiveFocus() })
-    var statePath = Quickshell.env("HOME") + "/.local/state/omarchy/translate-selection.txt"
-    selectionFile.path = ""
-    selectionFile.path = statePath
-    selectionFile.waitForJob()
-    var fresh = (selectionFile.text() || "").trim()
-    if (fresh.length > root.maxSelectionChars) {
-      root.errorMessage = "Selection too large"
-    } else if (fresh.length > 0) {
-      root.inputText = fresh
-    }
+    selectionProc.command = [
+      root.pluginPath + "/translate.py", "read",
+      "--path", root.stateDir + "/omarchy/translate-selection.txt"
+    ]
+    selectionProc.running = true
   }
 
   function close() {
@@ -249,24 +249,38 @@ Item {
     onTriggered: root.copyFlash = false
   }
 
-  FileView {
-    id: selectionFile
-    path: Quickshell.env("HOME") + "/.local/state/omarchy/translate-selection.txt"
-    watchChanges: false
-    atomicWrites: true
-    printErrors: false
-    onLoaded: {
-      if (root.opened) {
-        var text = text() || ""
-        if (text.length <= root.maxSelectionChars) {
-          root.inputText = text.trim()
-        } else {
-          root.inputText = ""
-          root.errorMessage = "Selection too large"
-        }
+  Process {
+    id: selectionProc
+    property string lastOutput: ""
+    property bool outputTooLarge: false
+    property int maxOutputChars: 1048576
+    stdinEnabled: false
+    stdout: SplitParser {
+      onRead: function(data) {
+        if (!selectionProc.outputTooLarge && selectionProc.lastOutput.length < selectionProc.maxOutputChars)
+          selectionProc.lastOutput += data
+        else
+          selectionProc.outputTooLarge = true
       }
     }
-    onLoadFailed: {}
+    stderr: SplitParser {
+      onRead: function(data) {}
+    }
+    onRunningChanged: {
+      if (!running) {
+        var text = (selectionProc.lastOutput || "").trim()
+        if (root.opened) {
+          if (selectionProc.outputTooLarge || text.length > root.maxSelectionChars) {
+            root.inputText = ""
+            root.errorMessage = "Selection too large"
+          } else if (text.length > 0) {
+            root.inputText = text
+          }
+        }
+        selectionProc.lastOutput = ""
+        selectionProc.outputTooLarge = false
+      }
+    }
   }
 
   Process {
