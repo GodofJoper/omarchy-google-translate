@@ -6,6 +6,8 @@ Google Translate.
 ## Features
 
 - Select any text and press the hotkey — the selection is translated instantly
+- Optional bar icon: one click translates the current selection, and a right-click
+  takes the icon back off the bar
 - Works out of the box: the plugin registers its own hotkey on first run, so no
   hand-edited keybindings are needed
 - Falls back to the clipboard, or just type into the source pane
@@ -71,6 +73,33 @@ translator over stdin and its HTTP request body only — it is never passed as a
 process argument or placed in a URL. Input, request response, and rendered
 output are all byte-limited; oversized selections or responses are rejected
 instead of buffered.
+
+## Bar icon
+
+The plugin can also put a globe icon in your bar. Left-click translates the
+current selection — the same path the hotkey takes — and the tooltip shows the
+hotkey that is actually bound. Right-click takes the icon off the bar again.
+
+It is off by default and is a normal bar widget entry, so the command line owns
+it:
+
+| Command | Effect |
+| --- | --- |
+| `omarchy-shell shell call godofjoper.translate setBarIconEnabled true` | Show the icon (in the section the manifest asks for) |
+| `omarchy-shell shell call godofjoper.translate setBarIconEnabled false` | Hide the icon |
+| `~/.config/omarchy/plugins/godofjoper.translate/bar-icon.sh enable [left\|center\|right]` | Show the icon, optionally in a given section |
+| `~/.config/omarchy/plugins/godofjoper.translate/bar-icon.sh disable` | Hide the icon |
+| `~/.config/omarchy/plugins/godofjoper.translate/bar-icon.sh toggle [left\|center\|right]` | Flip it |
+| `~/.config/omarchy/plugins/godofjoper.translate/bar-icon.sh status` | Where the icon is, if anywhere |
+
+The script edits only the plugin's own entry in `bar.layout` in
+`~/.config/omarchy/shell.json`, next to one timestamped backup
+(`shell.json.bak.google-translate.<ts>`), and asks the shell to reload. Hiding
+the icon leaves the hotkey and the overlay alone, so it is not the same as
+`omarchy plugin disable`.
+
+If you move the icon by hand in `shell.json`, `bar-icon.sh status` still finds
+it, and `disable` removes every copy of the entry.
 
 ## Usage
 

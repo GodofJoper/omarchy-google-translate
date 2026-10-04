@@ -125,6 +125,16 @@ Item {
   // IPC: omarchy-shell shell call godofjoper.translate hotkeyStatus ''
   function hotkeyStatus() { return hotkeyService.summary }
 
+  // IPC: omarchy-shell shell call godofjoper.translate setBarIconEnabled true
+  //
+  // The icon is a bar entry owned by bar-icon.sh, which also notifies and asks
+  // the shell to reload; this is the same command the user would type.
+  function setBarIconEnabled(value) {
+    var wanted = String(value) !== "false"
+    Quickshell.execDetached(["bash", root.pluginPath + "/bar-icon.sh", wanted ? "enable" : "disable"])
+    return "ok"
+  }
+
   function cycleSourceLang(delta) {
     root.sourceLangIndex = (root.sourceLangIndex + delta + root.commonLangs.length) % root.commonLangs.length
     if (root.sourceLangIndex === root.targetLangIndex) {

@@ -2,15 +2,24 @@
   "schemaVersion": 1,
   "id": "godofjoper.translate",
   "name": "Google Translate",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "author": "Ross",
   "license": "MIT",
   "description": "Google Translate overlay — select any text and translate it with a hotkey",
   "kinds": [
-    "overlay"
+    "overlay",
+    "bar-widget"
   ],
   "keepLoaded": true,
   "entryPoints": {
-    "overlay": "Translator.qml"
+    "overlay": "Translator.qml",
+    "barWidget": "TranslateBarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Google Translate",
+    "description": "Opens the translator on the current selection",
+    "category": "Apps",
+    "allowMultiple": false,
+    "defaultSection": "right"
   }
 }
